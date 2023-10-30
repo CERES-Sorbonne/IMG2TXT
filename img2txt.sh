@@ -37,39 +37,39 @@ fi
 
 # 3. Segmentation des pages
 if [ $inType = "-p" ]; then
-	for file in `ls $dir_path*.pdf`; do pdftoppm -png $file $file; done
+    find $dir_path -name "*.pdf" -exec pdftoppm -png {} {} \;
 fi
 
 # 4. Binarisation des images pour Kraken
 if [ $engine = "-k" ]; then
-	if [ $inType = "-p" ]; then
-		for file in `ls $dir_path*.png`; do timeout 600 kraken -i $file $file"_bin.png" binarize; done
-	elif [ $inType = "-P" ]; then
-		for file in `ls $dir_path*.png`; do timeout 600 kraken -i $file $file"_bin.png" binarize; done
-	elif [ $inType = "-j" ]; then
-		for file in `ls $dir_path*.jpg`; do timeout 600 kraken -i $file $file"_bin.png" binarize; done
-	elif [ $inType = "-t" ]; then
-		for file in `ls $dir_path*.tif`; do timeout 600 kraken -i $file $file"_bin.png" binarize; done
-	fi
+    if [ $inType = "-p" ]; then
+        find $dir_path -name "*.png" -exec timeout 600 kraken -i {} {}"_bin.png" binarize \;
+    elif [ $inType = "-P" ]; then
+        find $dir_path -name "*.png" -exec timeout 600 kraken -i {} {}"_bin.png" binarize \;
+    elif [ $inType = "-j" ]; then
+        find $dir_path -name "*.jpg" -exec timeout 600 kraken -i {} {}"_bin.png" binarize \;
+    elif [ $inType = "-t" ]; then
+        find $dir_path -name "*.tif" -exec timeout 600 kraken -i {} {}"_bin.png" binarize \;
+    fi
 fi
 
 # 5. Segmentation et OCR
 if [ $engine = "-k" ]; then
-	if [ $outType = "-t" ]; then
-		for file in `ls $dir_path*_bin.png`; do timeout 600 kraken -i $file $file".txt" segment ocr -m ./CORPUS17.mlmodel; done
-	else
-		for file in `ls $dir_path*_bin.png`; do timeout 600 kraken -i $file $file".html" segment ocr -m ./CORPUS17.mlmodel -h; done
-	fi
+    if [ $outType = "-t" ]; then
+        find $dir_path -name "*_bin.png" -exec timeout 600 kraken -i {} {}".txt" segment ocr -m ./CORPUS17.mlmodel \;
+    else
+        find $dir_path -name "*_bin.png" -exec timeout 600 kraken -h -i {} {}".html" segment ocr -m ./CORPUS17.mlmodel \;
+    fi
 elif [ $engine = "-t" ]; then
 	# code pour lancer tesseract avec un fichier de config
 	# ici html ça sera un fichier alto
-	if [ $inType = "-p" ]; then
-		for file in `ls $dir_path*.png`; do python3 tesseract_ocr.py $file $outType; done # if $outType -t --> TEXT if $outType -h --> ALTO
-	elif [ $inType = "-P" ]; then
-		for file in `ls $dir_path*.png`; do python3 tesseract_ocr.py $file $outType; done 
-	elif [ $inType = "-j" ]; then
-		for file in `ls $dir_path*.jpg`; do python3 tesseract_ocr.py $file $outType; done
-	elif [ $inType = "-t" ]; then
-		for file in `ls $dir_path*.tif`; do python3 tesseract_ocr.py $file $outType; done
-	fi
+    if [ $inType = "-p" ]; then
+        find $dir_path -name "*.png" -exec python3 tesseract_ocr.py {} $outType \;
+    elif [ $inType = "-P" ]; then
+        find $dir_path -name "*.png" -exec python3 tesseract_ocr.py {} $outType \;
+    elif [ $inType = "-j" ]; then
+        find $dir_path -name "*.jpg" -exec python3 tesseract_ocr.py {} $outType \;
+    elif [ $inType = "-t" ]; then
+        find $dir_path -name "*.tif" -exec python3 tesseract_ocr.py {} $outType \;
+    fi
 fi
